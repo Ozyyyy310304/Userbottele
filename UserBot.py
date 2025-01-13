@@ -102,7 +102,7 @@ async def promote(event):
                 await status_message.edit(append_watermark_to_message(f"📤 Sending messages... {progress:.2f}%\n{loading_animation} Sent: {sent_count}\nFailed: {failed_count}\n⏭ Next group in {remaining_time} seconds..."))
                 await asyncio.sleep(1)
     
-    await status_message.edit(append_watermark_to_message(f"✅ Finished sending messages!\nTotal groups sent:"))
+    await status_message.edit(append_watermark_to_message(f"✅ Finished sending messages!\nTotal groups sent: {sent_count}"))
 
 @client.on(events.NewMessage(pattern='.blacklist', outgoing=True))
 async def blacklist_group(event):
