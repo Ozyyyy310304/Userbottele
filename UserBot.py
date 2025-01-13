@@ -73,7 +73,6 @@ async def promote(event):
         return
     
     sent_count = 0
-    failed_count = 0
     delay = 0.1 # Set your desired delay time in seconds
     status_message = await event.respond(append_watermark_to_message("📤 Starting promotion..."))
 
@@ -189,7 +188,7 @@ async def back(event):
 async def show_help(event):
     await event.delete()
     help_text = (
-        "🛠 **Commands:**\n"
+        "🛠 **Commands:**🛠️\n"
         ".gcast - Global Cast a message to all groups.\n"
         ".blacklist - Blacklist the current group from receiving promotions.\n"
         ".addqr - Add a QR code (send image as a reply to this command).\n"
@@ -201,7 +200,7 @@ async def show_help(event):
     )
     await event.respond(help_text)
 
-@client.on(events.NewMessage(pattern='/ping', outgoing=True))
+@client.on(events.NewMessage(pattern='.ping', outgoing=True))
 async def ping(event):
     await event.delete()
     start = datetime.now()
