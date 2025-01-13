@@ -71,6 +71,9 @@ async def promote(event):
     if not reply_message:
         await event.respond(append_watermark_to_message("❌ Please reply to a message, image, or video to use as the promotion content."))
         return
+    if reply_message.is_forwarded:
+        # Jika pesan yang di-reply adalah pesan yang diteruskan
+       await client.send_message(dialog.id, reply_message.text, forward=reply_message.id)
     
     sent_count = 0
     delay = 0.1 # Set your desired delay time in seconds
@@ -98,9 +101,6 @@ async def promote(event):
                 loading_animation = "".join([symbol for symbol in loading_symbols[:sent_count % len(loading_symbols) + 1]])
                 await status_message.edit(append_watermark_to_message(f"📤 Sending messages... {progress:.2f}%\n{loading_animation} Sent: {sent_count}\nFailed: {failed_count}\n⏭ Next group in {remaining_time} seconds..."))
                 await asyncio.sleep(1)
-        except Exception as e:
-            failed_count += 1
-            print(f"Failed to send to {dialog.title}: {e}")
     
     await status_message.edit(append_watermark_to_message(f"✅ Finished sending messages!\nTotal groups sent: {sent_count}\nTotal groups failed: {failed_count}"))
 
