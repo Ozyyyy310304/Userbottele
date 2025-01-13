@@ -57,14 +57,6 @@ async def main():
 
 def is_device_owner(sender_id):
     return sender_id == device_owner_id
-    
- @client.on(events.NewMessage(pattern='.del', outgoing=True))
-async def delete_message(event):
-    try:
-        # Menghapus pesan yang dikirim oleh pengguna
-        await event.delete()
-    except Exception as e:
-        print(f"Error while deleting message: {e}")
 
 @client.on(events.NewMessage(pattern='.gcast', outgoing=True))
 async def promote(event):
@@ -189,7 +181,6 @@ async def show_help(event):
         "🛠 **Available Commands:**\n"
         ".gcast - Promote a message to all groups.\n"
         ".blacklist - Blacklist the current group from receiving promotions.\n"
-        ".del - Deleteing yourself's message"
         ".addqr - Add a QR code (send image as a reply to this command).\n"
         ".getqr - Retrieve all saved QR codes.\n"
         ".afk <reason> - Set an AFK message with a reason.\n"
