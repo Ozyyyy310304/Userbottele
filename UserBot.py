@@ -60,7 +60,7 @@ def is_device_owner(sender_id):
 
 @client.on(events.NewMessage(pattern='.gcast', outgoing=True))
 async def promote(event):
-    await event.delete()
+await event.delete() # Delete command message start = datetime.now()
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
         await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
@@ -71,13 +71,12 @@ async def promote(event):
     if not reply_message:
         await event.respond(append_watermark_to_message("❌ Please reply to a message, image, or video to use as the promotion content."))
         return
-    if reply_message.is_forwarded:
-        # Jika pesan yang di-reply adalah pesan yang diteruskan
-       await client.send_message(dialog.id, reply_message.text, forward=reply_message.id)
+
     
     sent_count = 0
+    failed_count = 0
     delay = 0.1 # Set your desired delay time in seconds
-    status_message = await event.respond(append_watermark_to_message("📤 Starting promotion..."))
+    status_message = await event.respond(append_watermark_to_message(" Starting promotion..."))
 
     groups = [dialog for dialog in await client.get_dialogs() if dialog.is_group]
     total_groups = len(groups)
@@ -99,14 +98,17 @@ async def promote(event):
             
             for remaining_time in range(delay, 0, -1):
                 loading_animation = "".join([symbol for symbol in loading_symbols[:sent_count % len(loading_symbols) + 1]])
-                await status_message.edit(append_watermark_to_message(f"📤 Sending messages... {progress:.2f}%\n{loading_animation} Sent: {sent_count}\nFailed: {failed_count}\n⏭ Next group in {remaining_time} seconds..."))
+                await status_message.edit(append_watermark_to_message(f" Sending messages... {progress:.2f}%\n{loading_animation} Sent: {sent_count}\nFailed: {failed_count}\n⏭ Next group in {remaining_time} seconds..."))
                 await asyncio.sleep(1)
+        except Exception as e:
+            failed_count += 1
+            print(f"Failed to send to {dialog.title}: {e}")
     
-    await status_message.edit(append_watermark_to_message(f"✅ Finished sending messages!\nTotal groups sent: {sent_count}"))
+    await status_message.edit(append_watermark_to_message(f"✅ Finished sending messages!\nTotal groups sent: {sent_count}\nTotal groups failed: {failed_count}"))
 
 @client.on(events.NewMessage(pattern='.blacklist', outgoing=True))
 async def blacklist_group(event):
-    await event.delete()
+await event.delete() # Delete command message start = datetime.now()
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
         await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
@@ -116,13 +118,12 @@ async def blacklist_group(event):
     group_id = event.chat_id
     if group_id not in blacklisted_groups:
         blacklisted_groups.append(group_id)
-        await event.respond(append_watermark_to_message("🚫 Group has been blacklisted successfully."))
+        await event.respond(append_watermark_to_message(" Group has been blacklisted successfully."))
     else:
-        await event.respond(append_watermark_to_message("🚫 This group is already blacklisted."))
+        await event.respond(append_watermark_to_message(" This group is already blacklisted."))
 
 @client.on(events.NewMessage(pattern='.addqr', outgoing=True))
 async def add_qr(event):
-    await event.delete()
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
         await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
@@ -146,6 +147,7 @@ async def add_qr(event):
 
 @client.on(events.NewMessage(pattern='.getqr', outgoing=True))
 async def get_qr(event):
+await event.delete() # Delete command message start = datetime.now()
     qr_files = sorted(os.listdir(QR_CODE_DIR))
     if not qr_files:
         await event.respond(append_watermark_to_message("❌ No QR codes available."))
@@ -154,7 +156,7 @@ async def get_qr(event):
     try:
         for qr_file in qr_files:
             file_path = os.path.join(QR_CODE_DIR, qr_file)
-            await client.send_file(event.chat_id, file_path, caption=append_watermark_to_message(f"🖼 QR Code: {qr_file}"))
+            await client.send_file(event.chat_id, file_path, caption=append_watermark_to_message(f" QR Code: {qr_file}"))
             await asyncio.sleep(1)  # Optional delay to avoid spamming
     except Exception as e:
         await event.respond(append_watermark_to_message("❌ Failed to send QR code."))
@@ -162,33 +164,34 @@ async def get_qr(event):
 
 @client.on(events.NewMessage(pattern='.afk', outgoing=True))
 async def afk(event):
-    await event.delete()
-    global afk_reason
+await event.delete() # Delete command message start = datetime.now()
+    global 
     afk_reason = event.message.message[len('/afk '):].strip()
     if not afk_reason:
         afk_reason = "AFK"
-    await event.respond(append_watermark_to_message(f"💤 AFK mode enabled with reason: {afk_reason}"))
+    await event.respond(append_watermark_to_message(f" AFK mode enabled with reason: {afk_reason}"))
     print(f"AFK mode enabled with reason: {afk_reason}")
 
 @client.on(events.NewMessage(incoming=True))
 async def handle_incoming(event):
+await event.delete() # Delete command message start = datetime.now()
     global afk_reason
     if afk_reason and event.mentioned:
-        await event.reply(append_watermark_to_message(f"🤖 I am currently AFK. Reason: {afk_reason}"))
+        await event.reply(append_watermark_to_message(f" I am currently AFK. Reason: {afk_reason}"))
 
 @client.on(events.NewMessage(pattern='.back', outgoing=True))
 async def back(event):
-    await event.delete()
+await event.delete() # Delete command message start = datetime.now()
     global afk_reason
     afk_reason = None
-    await event.respond(append_watermark_to_message("👋 I am back now."))
+    await event.respond(append_watermark_to_message(" I am back now."))
     print("AFK mode disabled.")
 
 @client.on(events.NewMessage(pattern='.help', outgoing=True))
 async def show_help(event):
-    await event.delete()
+await event.delete() # Delete command message start = datetime.now()
     help_text = (
-        "🛠 **Commands:**🛠️\n"
+        " **Commands:**\n"
         ".gcast - Global Cast a message to all groups.\n"
         ".blacklist - Blacklist the current group from receiving promotions.\n"
         ".addqr - Add a QR code (send image as a reply to this command).\n"
@@ -202,12 +205,12 @@ async def show_help(event):
 
 @client.on(events.NewMessage(pattern='.ping', outgoing=True))
 async def ping(event):
-    await event.delete()
+await event.delete() # Delete command message start = datetime.now()
     start = datetime.now()
-    await event.respond(append_watermark_to_message("🏓 Pong!"))
+    await event.respond(append_watermark_to_message(" Pong!"))
     end = datetime.now()
     latency = (end - start).total_seconds() * 1000
-    await event.respond(append_watermark_to_message(f"📈 Ping: {latency:.2f} ms"))
+    await event.respond(append_watermark_to_message(f" Ping: {latency:.2f} ms"))
 
 async def run_bot():
     await main()
