@@ -60,7 +60,7 @@ def is_device_owner(sender_id):
 
 @client.on(events.NewMessage(pattern='.gcast', outgoing=True))
 async def promote(event):
-await event.delete() # Delete command message start = datetime.now()
+await event.delete()
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
         await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
@@ -108,7 +108,7 @@ await event.delete() # Delete command message start = datetime.now()
 
 @client.on(events.NewMessage(pattern='.blacklist', outgoing=True))
 async def blacklist_group(event):
-await event.delete() # Delete command message start = datetime.now()
+await event.delete()
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
         await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
@@ -124,6 +124,7 @@ await event.delete() # Delete command message start = datetime.now()
 
 @client.on(events.NewMessage(pattern='.addqr', outgoing=True))
 async def add_qr(event):
+    await event.delete()
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
         await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
@@ -147,7 +148,7 @@ async def add_qr(event):
 
 @client.on(events.NewMessage(pattern='.getqr', outgoing=True))
 async def get_qr(event):
-await event.delete() # Delete command message start = datetime.now()
+await event.delete()
     qr_files = sorted(os.listdir(QR_CODE_DIR))
     if not qr_files:
         await event.respond(append_watermark_to_message("❌ No QR codes available."))
@@ -164,7 +165,7 @@ await event.delete() # Delete command message start = datetime.now()
 
 @client.on(events.NewMessage(pattern='.afk', outgoing=True))
 async def afk(event):
-await event.delete() # Delete command message start = datetime.now()
+await event.delete()
     global 
     afk_reason = event.message.message[len('/afk '):].strip()
     if not afk_reason:
@@ -174,14 +175,14 @@ await event.delete() # Delete command message start = datetime.now()
 
 @client.on(events.NewMessage(incoming=True))
 async def handle_incoming(event):
-await event.delete() # Delete command message start = datetime.now()
+await event.delete()
     global afk_reason
     if afk_reason and event.mentioned:
         await event.reply(append_watermark_to_message(f" I am currently AFK. Reason: {afk_reason}"))
 
 @client.on(events.NewMessage(pattern='.back', outgoing=True))
 async def back(event):
-await event.delete() # Delete command message start = datetime.now()
+await event.delete()
     global afk_reason
     afk_reason = None
     await event.respond(append_watermark_to_message(" I am back now."))
@@ -189,7 +190,7 @@ await event.delete() # Delete command message start = datetime.now()
 
 @client.on(events.NewMessage(pattern='.help', outgoing=True))
 async def show_help(event):
-await event.delete() # Delete command message start = datetime.now()
+await event.delete()
     help_text = (
         " **Commands:**\n"
         ".gcast - Global Cast a message to all groups.\n"
