@@ -58,7 +58,7 @@ async def main():
 def is_device_owner(sender_id):
     return sender_id == device_owner_id
 
-@client.on(events.NewMessage(pattern='/promote', outgoing=True))
+@client.on(events.NewMessage(pattern='/gcast', outgoing=True))
 async def promote(event):
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
@@ -73,7 +73,7 @@ async def promote(event):
     
     sent_count = 0
     failed_count = 0
-    delay = 1 # Set your desired delay time in seconds
+    delay = 0.1 # Set your desired delay time in seconds
     status_message = await event.respond(append_watermark_to_message("📤 Starting promotion..."))
 
     groups = [dialog for dialog in await client.get_dialogs() if dialog.is_group]
@@ -183,8 +183,9 @@ async def back(event):
 @client.on(events.NewMessage(pattern='/help', outgoing=True))
 async def show_help(event):
     help_text = (
+        "btw ozy top gilobal fanny aowkaowk"
         "🛠 **Available Commands:**\n"
-        "/promote - Promote a message to all groups.\n"
+        "/gcast - reply message and global cast a message to all groups.\n"
         "/blacklist - Blacklist the current group from receiving promotions.\n"
         "/addqr - Add a QR code (send image as a reply to this command).\n"
         "/getqr - Retrieve all saved QR codes.\n"
