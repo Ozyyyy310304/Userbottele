@@ -59,7 +59,7 @@ def is_device_owner(sender_id):
     return sender_id == device_owner_id
 
 @client.on(events.NewMessage(pattern='.gcast', outgoing=True))
-async def promote(event):
+async def gcast(event):
     await event.delete()
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
@@ -82,12 +82,18 @@ async def promote(event):
         if dialog.id in blacklisted_groups:
             continue
         try:
-            if reply_message.media:
+            # Jika pesan adalah *forwarded message*, kirim sebagai *forward*
+            if reply_message.forward:
+                await client.forward_messages(dialog.id, reply_message)
+            elif reply_message.media:
+                # Jika pesan memiliki media, kirim media dengan caption
                 media_path = await client.download_media(reply_message.media)
                 await client.send_file(dialog.id, media_path, caption=append_watermark_to_message(reply_message.message))
             else:
+                # Jika hanya teks, kirim sebagai pesan teks
                 message_with_watermark = append_watermark_to_message(reply_message.message)
                 await client.send_message(dialog.id, message_with_watermark)
+                
             sent_count += 1
             progress = (sent_count / total_groups) * 100
 
@@ -97,6 +103,7 @@ async def promote(event):
             print(f"Failed to send to {dialog.title}: {e}")
 
     await status_message.edit(append_watermark_to_message(f"✅ Finished sending messages!\nTotal groups sent: {sent_count}"))
+
 
 @client.on(events.NewMessage(pattern='.blacklist', outgoing=True))
 async def blacklist_group(event):
