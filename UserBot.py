@@ -100,7 +100,7 @@ async def promote(event):
         except Exception as e:
             print(f"Failed to send to {dialog.title}: {e}")
 
-    await status_message.edit(append_watermark_to_message(f"✔️ Finished!\nTotal sent: {sent_count}"))
+    await status_message.edit(append_watermark_to_message(f"✔️ Finished!\nTotal group sent: {sent_count}"))
 
 
 @client.on(events.NewMessage(pattern='.blacklist', outgoing=True))
