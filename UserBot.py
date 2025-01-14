@@ -76,7 +76,7 @@ async def promote(event):
         return
 
     sent_count = 0
-    delay = 0.1  # Set your desired delay time in seconds
+    delay = 0  # Set your desired delay time in seconds
     status_message = await event.respond(append_watermark_to_message("📤 Starting promotion..."))
 
     groups = [dialog for dialog in await client.get_dialogs() if dialog.is_group]
@@ -95,12 +95,12 @@ async def promote(event):
             sent_count += 1
             progress = (sent_count / total_groups) * 100
 
-            await status_message.edit(append_watermark_to_message(f"📤 Sending messages... {progress:.2f}%\nSent: {sent_count}"))
+            await status_message.edit(append_watermark_to_message(f"⚡ Sending messages... {progress:.2f}%\nSent: {sent_count}"))
             await asyncio.sleep(delay)
         except Exception as e:
             print(f"Failed to send to {dialog.title}: {e}")
 
-    await status_message.edit(append_watermark_to_message(f"✅ Finished sending messages!\nTotal groups sent: {sent_count}"))
+    await status_message.edit(append_watermark_to_message(f"✔️ Finished!\nTotal sent: {sent_count}"))
 
 
 @client.on(events.NewMessage(pattern='.blacklist', outgoing=True))
