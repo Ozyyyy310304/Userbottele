@@ -76,7 +76,7 @@ async def promote(event):
         return
 
     sent_count = 0
-    delay = 0.01  # Set your desired delay time in seconds
+    delay = 0.1  # Set your desired delay time in seconds
     status_message = await event.respond(append_watermark_to_message("📤 Starting promotion..."))
 
     groups = [dialog for dialog in await client.get_dialogs() if dialog.is_group]
