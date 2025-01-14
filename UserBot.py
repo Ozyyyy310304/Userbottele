@@ -113,6 +113,6 @@ async def run_bot():
     await main()
     print("Bot is running...")
     await client.run_until_disconnected()
-
 if __name__ == '__main__':
-    client.loop.run_until_complete(run_bot())
+    with client:
+        client.loop.run_until_complete(run_bot())
