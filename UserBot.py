@@ -58,6 +58,66 @@ async def main():
 def is_device_owner(sender_id):
     return sender_id == device_owner_id
 
+from telethon import TelegramClient, events
+import os
+import asyncio
+from datetime import datetime
+
+api_id = '29798494'
+api_hash = '53273c1de3e68a9ecdb90de2dcf46f6c'
+
+client = TelegramClient('userbot', api_id, api_hash)
+device_owner_id = None
+afk_reason = None
+
+# Directory to store QR code images
+QR_CODE_DIR = "qr_codes"
+
+# Ensure the directory exists
+os.makedirs(QR_CODE_DIR, exist_ok=True)
+
+# Blacklisted group list
+blacklisted_groups = []
+
+# Watermark text
+WATERMARK_TEXT = ""
+
+# Function to append watermark to a message
+def append_watermark_to_message(message):
+    return f"{message}\n\n{WATERMARK_TEXT}"
+
+async def main():
+    await client.start()
+    print("Client Created")
+
+    global device_owner_id
+
+    if not await client.is_user_authorized():
+        phone_number = input("Please enter your phone number (with country code): ")
+        try:
+            await client.send_code_request(phone_number)
+            print("Code sent successfully!")
+        except Exception as e:
+            print(f"Error requesting code: {e}")
+            return
+        
+        code = input("Please enter the code you received: ")
+        try:
+            await client.sign_in(phone_number, code=code)
+            print("Signed in successfully!")
+        except Exception as e:
+            print(f"Error during sign in: {e}")
+            return
+
+    print("Client Authenticated")
+
+    device_owner = await client.get_me()
+    device_owner_id = device_owner.id
+    print(f"Device owner ID: {device_owner_id}")
+
+def is_device_owner(sender_id):
+    return sender_id == device_owner_id
+
 @client.on(events.NewMessage(pattern='.gcast', outgoing=True))
 async def gcast(event):
     sender = await event.get_sender()
@@ -75,7 +135,7 @@ async def gcast(event):
     sent_count = 0
     delay = 0.1
     # Notifikasi sedang mengirim
-    SENDING_NOTIFICATION = "📨[custom emoji](tg://emoji?id=5933971389324201276) **Proses Global Casting**"
+    SENDING_NOTIFICATION = "<emoji id=\"5933554197675904351\">⚫</emoji> **Proses Global Casting**"
     status_message = await event.respond(append_watermark_to_message(SENDING_NOTIFICATION))
     
     groups = [dialog for dialog in await client.get_dialogs() if dialog.is_group]
@@ -95,13 +155,16 @@ async def gcast(event):
             print(f"Failed to send to {dialog.title}: {e}")
     
     # Notifikasi pesan terkirim
-    SENT_NOTIFICATION = f"📨[custom emoji](tg://emoji?id=5933759716155985406) **Message Casted To: {sent_count} Groups**"
+    SENT_NOTIFICATION = f"<emoji id=\"5933759716155985406\">✔</emoji> **Message Casted To: {sent_count} Groups**"
     await status_message.edit(append_watermark_to_message(SENT_NOTIFICATION))
     
     # Delay 10 detik sebelum menghapus notifikasi
     await asyncio.sleep(10)
     await status_message.delete()
     await event.delete()  # Delete the original command message
+
+# The rest of your code remains unchanged...
+
 
 
 @client.on(events.NewMessage(pattern='.blacklist', outgoing=True))
