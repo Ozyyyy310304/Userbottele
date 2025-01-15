@@ -63,24 +63,22 @@ async def gcast(event):
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
         await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
-        print("Unauthorized access attempt blocked.")
-        await event.delete()  # Delete the command message
+        await event.delete()
         return
 
     reply_message = await event.get_reply_message()
     if not reply_message:
-        await event.respond(append_watermark_to_message("❌ Please reply to a message, image, or video to use as the promotion content."))
-        await event.delete()  # Delete the command message
+        await event.respond(append_watermark_to_message("❌ Please reply to a message to broadcast."))
+        await event.delete()
         return
-    
+
     sent_count = 0
-    delay = 0.1  # Set your desired delay time in seconds
-    status_message = await event.respond(append_watermark_to_message("📤 Starting broadcast..."))
-
+    delay = 0.1
+    # Notifikasi sedang mengirim
+    SENDING_NOTIFICATION = "📨[custom emoji](tg://emoji?id=5933971389324201276) *Proses Global Casting*"
+    status_message = await event.respond(append_watermark_to_message(SENDING_NOTIFICATION))
+    
     groups = [dialog for dialog in await client.get_dialogs() if dialog.is_group]
-    total_groups = len(groups)
-
-    loading_symbols = ["-", "\\", "|", "/"]
 
     for dialog in groups:
         if dialog.id in blacklisted_groups:
@@ -90,21 +88,21 @@ async def gcast(event):
                 media_path = await client.download_media(reply_message.media)
                 await client.send_file(dialog.id, media_path, caption=append_watermark_to_message(reply_message.message))
             else:
-                message_with_watermark = append_watermark_to_message(reply_message.message)
-                await client.send_message(dialog.id, message_with_watermark)
+                await client.send_message(dialog.id, append_watermark_to_message(reply_message.message))
             sent_count += 1
-            progress = (sent_count / total_groups) * 100
-            
-            for remaining_time in range(int(delay * 10), 0, -1):  # Adjusting sleep time for 0.1 delay
-                loading_animation = "".join([symbol for symbol in loading_symbols[:sent_count % len(loading_symbols) + 1]])
-                await status_message.edit(append_watermark_to_message(f"📤 Sending messages... {progress:.2f}%\n{loading_animation} Sent: {sent_count}\n⏭ Next group in {remaining_time * 0.1:.1f} seconds..."))
-                await asyncio.sleep(0.1)
+            await asyncio.sleep(delay)
         except Exception as e:
             print(f"Failed to send to {dialog.title}: {e}")
     
-    await status_message.edit(append_watermark_to_message(f"✅ Finished sending messages!\nTotal groups sent: {sent_count}"))
-    await status_message.delete()  # Delete the status message after execution
-    await event.delete()  # Delete the command message
+    # Notifikasi pesan terkirim
+    SENT_NOTIFICATION = f"📨[custom emoji](tg://emoji?id=5933759716155985406) *Message Casted To: {sent_count} Groups*"
+    await status_message.edit(append_watermark_to_message(SENT_NOTIFICATION))
+    
+    # Delay 10 detik sebelum menghapus notifikasi
+    await asyncio.sleep(10)
+    await status_message.delete()
+    await event.delete()  # Delete the original command message
+
 
 @client.on(events.NewMessage(pattern='.blacklist', outgoing=True))
 async def blacklist_group(event):
