@@ -332,11 +332,13 @@ async def show_help(event):
 @client.on(events.NewMessage(pattern='.ping', outgoing=True))
 async def ping(event):
     start = datetime.now()
-    await event.respond(append_watermark_to_message("🏓 Pong!"))
+    # Ganti emoji di sini menggunakan emoji ID premium
+    await event.respond(append_watermark_to_message("<emoji id=\"5927022501606460935\">🚫</emoji> Pong!"))
     end = datetime.now()
     latency = (end - start).total_seconds() * 1000
     await event.respond(append_watermark_to_message(f"📈 Ping: {latency:.2f} ms"))
     await event.delete()  # Delete the command message after execution
+
 
 async def run_bot():
     await main()
