@@ -316,7 +316,7 @@ async def back(event):
 @client.on(events.NewMessage(pattern='.help', outgoing=True))
 async def show_help(event):
     help_text = (
-        "🛠 **Available Commands:**\n"
+        "🛠 **Available Commands By **OZY GANTENK TOP GELOBAL PANI**:**\n"
         ".gcast - Broadcast a message to all groups.\n"
         ".blacklist - Blacklist the current group from receiving promotions.\n"
         ".addqr - Add a QR code (send image as a reply to this command).\n"
@@ -333,10 +333,10 @@ async def show_help(event):
 async def ping(event):
     start = datetime.now()
     # Ganti emoji di sini menggunakan emoji ID premium
-    await event.respond(append_watermark_to_message("<emoji id=\"5927022501606460935\">🚫</emoji> Pong!"))
+    await event.respond(append_watermark_to_message("**Pong!**"))
     end = datetime.now()
     latency = (end - start).total_seconds() * 1000
-    await event.respond(append_watermark_to_message(f"📈 Ping: {latency:.2f} ms"))
+    await event.respond(append_watermark_to_message(f"**📈 Ping:** {latency:.2f} ms"))
     await event.delete()  # Delete the command message after execution
 
 
