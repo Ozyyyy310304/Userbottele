@@ -75,7 +75,7 @@ async def gcast(event):
     sent_count = 0
     delay = 0.1
     # Notifikasi sedang mengirim
-    SENDING_NOTIFICATION = "**Proses Global Casting**"
+    SENDING_NOTIFICATION = "**🚨Proses Global Casting**"
     status_message = await event.respond(append_watermark_to_message(SENDING_NOTIFICATION))
     
     groups = [dialog for dialog in await client.get_dialogs() if dialog.is_group]
@@ -95,7 +95,7 @@ async def gcast(event):
             print(f"Failed to send to {dialog.title}: {e}")
     
     # Notifikasi pesan terkirim
-    SENT_NOTIFICATION = "⚡**Message Casted To: {sent_count} Groups**"
+    SENT_NOTIFICATION = f"⚡**Message Casted To: {sent_count} Groups**"
     await status_message.edit(append_watermark_to_message(SENT_NOTIFICATION))
     
     # Delay 10 detik sebelum menghapus notifikasi
