@@ -212,7 +212,7 @@ async def ping(event):
     await event.respond(append_watermark_to_message("🏓 Pong!"))
     end = datetime.now()
     latency = (end - start).total_seconds() * 1000
-    await event.respond(f"<emoji id= 5269563867305879894>🏓</emoji> Ping: {latency:.2f} ms"))
+    await event.respond(f"<emoji id= 5269563867305879894>🏓</emoji> Ping: {latency:.2f} ms")
     await event.delete()  # Delete the command message after execution
 
 async def run_bot():
