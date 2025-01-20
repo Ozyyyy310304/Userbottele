@@ -26,10 +26,17 @@ def load_blacklist():
     except (FileNotFoundError, json.JSONDecodeError):
         return []
 
-# Fungsi untuk menyimpan data blacklist ke file JSON
+# Fungsi untuk menyimpan data blacklist ke dua file JSON
 def save_blacklist(blacklisted_groups):
+    data = {"blacklisted_groups": blacklisted_groups}
+    
+    # Simpan ke file blacklist.json
     with open('blacklist.json', 'w') as file:
-        json.dump({"blacklisted_groups": blacklisted_groups}, file, indent=4)
+        json.dump(data, file, indent=4)
+    
+    # Simpan ke file blacklist.json.save
+    with open('blacklist.json.save', 'w') as file_save:
+        json.dump(data, file_save, indent=4)
 
 # Watermark text
 WATERMARK_TEXT = ""
@@ -164,7 +171,15 @@ async def show_blacklist(event):
     if not blacklisted_groups:
         await event.respond(append_watermark_to_message("❌ No groups in the blacklist."))
     else:
-        groups_list = "\n".join([str(group) for group in blacklisted_groups])
+        groups_info = []
+        for group_id in blacklisted_groups:
+            try:
+                group = await client.get_entity(group_id)  # Dapatkan info grup berdasarkan ID
+                groups_info.append(f"{group.title} (ID: {group.id})")
+            except Exception as e:
+                groups_info.append(f"Error fetching group: {group_id}")
+        
+        groups_list = "\n".join(groups_info)
         await event.respond(append_watermark_to_message(f"🔴 Blacklisted Groups:\n{groups_list}"))
     
     await event.delete()  # Delete the command message after execution
