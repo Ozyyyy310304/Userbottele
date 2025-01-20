@@ -17,15 +17,19 @@ QR_CODE_DIR = "qr_codes"
 # Ensure the directory exists
 os.makedirs(QR_CODE_DIR, exist_ok=True)
 
-# Path to store blacklisted groups
-BLACKLIST_FILE = "blacklist.json"
+# Fungsi untuk memuat data blacklist dari file JSON
+def load_blacklist():
+    try:
+        with open('blacklist.json', 'r') as file:
+            data = json.load(file)
+        return data['blacklisted_groups']
+    except (FileNotFoundError, json.JSONDecodeError):
+        return []
 
-# Load blacklist from file if exists
-if os.path.exists(BLACKLIST_FILE):
-    with open(BLACKLIST_FILE, "r") as f:
-        blacklisted_groups = json.load(f)
-else:
-    blacklisted_groups = []
+# Fungsi untuk menyimpan data blacklist ke file JSON
+def save_blacklist(blacklisted_groups):
+    with open('blacklist.json', 'w') as file:
+        json.dump({"blacklisted_groups": blacklisted_groups}, file, indent=4)
 
 # Watermark text
 WATERMARK_TEXT = ""
@@ -33,11 +37,6 @@ WATERMARK_TEXT = ""
 # Function to append watermark to a message
 def append_watermark_to_message(message):
     return f"{message}\n\n{WATERMARK_TEXT}"
-
-# Save blacklist to file
-def save_blacklist():
-    with open(BLACKLIST_FILE, "w") as f:
-        json.dump(blacklisted_groups, f)
 
 async def main():
     await client.start()
@@ -94,6 +93,7 @@ async def gcast(event):
     groups = [dialog for dialog in await client.get_dialogs() if dialog.is_group]
 
     for dialog in groups:
+        blacklisted_groups = load_blacklist()
         if dialog.id in blacklisted_groups:
             continue
         try:
@@ -116,8 +116,7 @@ async def gcast(event):
     await status_message.delete()
     await event.delete()  # Delete the original command message
 
-
-@client.on(events.NewMessage(pattern='.blacklist', outgoing=True))
+@client.on(events.NewMessage(pattern='.addbl', outgoing=True))
 async def blacklist_group(event):
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
@@ -127,33 +126,47 @@ async def blacklist_group(event):
         return
 
     group_id = event.chat_id
+    blacklisted_groups = load_blacklist()
+
     if group_id not in blacklisted_groups:
         blacklisted_groups.append(group_id)
-        save_blacklist()  # Save blacklist after modification
+        save_blacklist(blacklisted_groups)
         await event.respond(append_watermark_to_message("🚫 Group has been blacklisted successfully."))
     else:
         await event.respond(append_watermark_to_message("🚫 This group is already blacklisted."))
     await event.delete()  # Delete the command message after execution
 
-@client.on(events.NewMessage(pattern='.showblacklist', outgoing=True))
-async def show_blacklist(event):
+@client.on(events.NewMessage(pattern='.unbl', outgoing=True))
+async def unblacklist_group(event):
     sender = await event.get_sender()
     if not is_device_owner(sender.id):
         await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
+        print("Unauthorized access attempt blocked.")
         await event.delete()  # Delete the command message
         return
 
-    if not blacklisted_groups:
-        await event.respond(append_watermark_to_message("❌ No groups are blacklisted."))
+    group_id = event.chat_id
+    blacklisted_groups = load_blacklist()
+
+    if group_id in blacklisted_groups:
+        blacklisted_groups.remove(group_id)
+        save_blacklist(blacklisted_groups)
+        await event.respond(append_watermark_to_message("✅ Group has been removed from the blacklist."))
     else:
-        blacklist_message = "🚫 **Blacklisted Groups:**\n"
-        for group_id in blacklisted_groups:
-            try:
-                group = await client.get_entity(group_id)
-                blacklist_message += f"- {group.title} (ID: {group.id})\n"
-            except Exception as e:
-                blacklist_message += f"- Unknown Group (ID: {group_id})\n"
-        await event.respond(append_watermark_to_message(blacklist_message))
+        await event.respond(append_watermark_to_message("❌ This group is not in the blacklist."))
+    
+    await event.delete()  # Delete the command message after execution
+
+@client.on(events.NewMessage(pattern='.showbl', outgoing=True))
+async def show_blacklist(event):
+    blacklisted_groups = load_blacklist()
+
+    if not blacklisted_groups:
+        await event.respond(append_watermark_to_message("❌ No groups in the blacklist."))
+    else:
+        groups_list = "\n".join([str(group) for group in blacklisted_groups])
+        await event.respond(append_watermark_to_message(f"🔴 Blacklisted Groups:\n{groups_list}"))
+    
     await event.delete()  # Delete the command message after execution
 
 @client.on(events.NewMessage(pattern='.addqr', outgoing=True))
@@ -227,19 +240,20 @@ async def back(event):
 @client.on(events.NewMessage(pattern='.help', outgoing=True))
 async def show_help(event):
     help_text = (
-        "**ozy fans barca top global fanny pengacak partyan tuan muda dan juragan raps**"
-        ""
-        
-        "🛠️**Available Commands:**\n"
-        ".gcast - Broadcast a message to all groups.\n"
-        ".blacklist - Blacklist the current group from receiving promotions.\n"
-        ".addqr - Add a QR code (send image as a reply to this command).\n"
-        ".getqr - Retrieve all saved QR codes.\n"
-        ".afk <reason> - Set an AFK message with a reason.\n"
-        ".back - Disable AFK mode.\n"
-        ".ping - Check the bot's response time.\n"
-        ".showblacklist - View the list of blacklisted groups.\n"
-        f"\n{WATERMARK_TEXT}"
+        "**Available Commands:**\n"
+        "--------------------------\n"
+        "**.gcast** - Broadcast a message to all groups.\n"
+        "**.addbl** - Blacklist the current group.\n"
+        "**.unbl** - Unblacklist the current group.\n"
+        "**.showbl** - Show all blacklisted groups.\n"
+        "**.addqr** - Add a QR code (reply to an image).\n"
+        "**.getqr** - Retrieve all saved QR codes.\n"
+        "**.afk <reason>** - Set an AFK message.\n"
+        "**.back** - Disable AFK mode.\n"
+        "**.ping** - Check the bot's response time.\n"
+        "--------------------------\n"
+        "**Fisik Bisa Dirubah,Materi Bisa Dicari,Tapi Top Global Fanny Tidak Datang 2x,Ozy nih bos Tampling dong**"
+        f"{WATERMARK_TEXT}"
     )
     await event.respond(help_text)
     await event.delete()  # Delete the command message after execution
@@ -250,7 +264,7 @@ async def ping(event):
     await event.respond(append_watermark_to_message("🏓 Pong!"))
     end = datetime.now()
     latency = (end - start).total_seconds() * 1000
-    await event.respond(f"📈 Network: {latency:.2f} ms")
+    await event.respond(f"📈Network Speed: {latency:.2f} ms")
     await event.delete()  # Delete the command message after execution
 
 async def run_bot():
