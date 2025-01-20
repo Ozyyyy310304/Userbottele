@@ -95,7 +95,7 @@ async def gcast(event):
             print(f"Failed to send to {dialog.title}: {e}")
     
     # Notifikasi pesan terkirim
-    SENT_NOTIFICATION = f"⚡**Message Casted To: {sent_count} Groups**"
+    SENT_NOTIFICATION = (f"⚡**Message Casted To: {sent_count} Groups**")
     await status_message.edit(append_watermark_to_message(SENT_NOTIFICATION))
     
     # Delay 10 detik sebelum menghapus notifikasi
@@ -211,7 +211,7 @@ async def ping(event):
     await event.respond(append_watermark_to_message("🏓 Pong!"))
     end = datetime.now()
     latency = (end - start).total_seconds() * 1000
-    await event.respond(append_watermark_to_message(f"📈 Ping: {latency:.2f} ms"))
+    await event.respond(f"📈 Ping: {latency:.2f} ms"))
     await event.delete()  # Delete the command message after execution
 
 async def run_bot():
