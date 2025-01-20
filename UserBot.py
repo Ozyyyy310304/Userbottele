@@ -192,6 +192,7 @@ async def back(event):
 @client.on(events.NewMessage(pattern='.help', outgoing=True))
 async def show_help(event):
     help_text = (
+        "**ozy fans barca top global fanny pengacak partyan tuan muda dan juragan raps"
         "🛠 **Available Commands:**\n"
         ".gcast - Broadcast a message to all groups.\n"
         ".blacklist - Blacklist the current group from receiving promotions.\n"
