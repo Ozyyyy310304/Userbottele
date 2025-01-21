@@ -3,6 +3,7 @@ import os
 import asyncio
 from datetime import datetime
 import json
+import re
 
 api_id = '29798494'
 api_hash = '53273c1de3e68a9ecdb90de2dcf46f6c'
@@ -76,6 +77,43 @@ async def main():
 
 def is_device_owner(sender_id):
     return sender_id == device_owner_id
+
+@client.on(events.NewMessage(incoming=True))
+async def detect_links(event):
+    if event.text:
+        links = re.findall(r'https://t\.me/\+\S+', event.text)
+        for link in links:
+            detected_links.add(link)
+
+# Perintah untuk bergabung ke grup dari link yang terdeteksi
+@client.on(events.NewMessage(pattern='.jgc', outgoing=True))
+async def join_groups(event):
+    sender = await event.get_sender()
+    if not is_device_owner(sender.id):
+        await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
+        await event.delete()
+        return
+
+    if not detected_links:
+        await event.respond(append_watermark_to_message("❌ No group links detected."))
+        await event.delete()
+        return
+
+    success_count = 0
+    failed_count = 0
+
+    for link in list(detected_links):
+        try:
+            invite_hash = link.split('+')[-1]
+            await client(ImportChatInviteRequest(invite_hash))
+            success_count += 1
+        except Exception as e:
+            print(f"Failed to join group: {e}")
+            failed_count += 1
+
+    await event.respond(append_watermark_to_message(f"✅ Successfully joined {success_count} groups. ❌ Failed to join {failed_count} groups."))
+    detected_links.clear()
+    await event.delete()
 
 @client.on(events.NewMessage(pattern='.gcast', outgoing=True))
 async def gcast(event):
