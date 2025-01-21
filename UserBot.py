@@ -227,6 +227,50 @@ async def get_qr(event):
         await event.respond(append_watermark_to_message("❌ Failed to send QR code."))
         print(f"Error sending QR code: {e}")
     await event.delete()  # Delete the command message after execution
+    
+@client.on(events.NewMessage(pattern=r'\.spam (\d+)', outgoing=True))
+async def spam(event):
+    sender = await event.get_sender()
+    if not is_device_owner(sender.id):
+        await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
+        await event.delete()
+        return
+
+    # Parse jumlah spam dari argumen command
+    args = event.pattern_match.group(1)
+    if not args.isdigit():
+        await event.respond(append_watermark_to_message("❌ Invalid format. Use `.spam <number>` and reply to a message."))
+        await event.delete()
+        return
+
+    count = int(args)
+    if count <= 0 or count > 100:  # Batasi jumlah spam untuk keamanan
+        await event.respond(append_watermark_to_message("❌ The spam count must be between 1 and 100."))
+        await event.delete()
+        return
+
+    reply_message = await event.get_reply_message()
+    if not reply_message:
+        await event.respond(append_watermark_to_message("❌ Please reply to a message to spam."))
+        await event.delete()
+        return
+
+    # Mulai spam
+    for i in range(count):
+        try:
+            if reply_message.media:
+                media_path = await client.download_media(reply_message.media)
+                await client.send_file(event.chat_id, media_path, caption=append_watermark_to_message(reply_message.message))
+            else:
+                await client.send_message(event.chat_id, append_watermark_to_message(reply_message.message))
+        except Exception as e:
+            print(f"Error during spam: {e}")
+            break
+
+    # Notifikasi selesai
+    await event.respond(append_watermark_to_message(f"✅ Successfully sent the message {count} times."))
+    await event.delete()  # Hapus pesan command setelah selesai
+
 
 @client.on(events.NewMessage(pattern='.afk', outgoing=True))
 async def afk(event):
@@ -257,11 +301,12 @@ async def show_help(event):
     help_text = (
         "**Available Commands:**\n"
         "--------------------------\n"
-        "**.gcast** - Broadcast a message to all groups.\n"
+        "**.gcast** - Broadcast a message to groups.\n"
+        "*.spam <count>* - Spamming The message you reply.\n"
         "**.addbl** - Blacklist the current group.\n"
         "**.unbl** - Unblacklist the current group.\n"
         "**.showbl** - Show all blacklisted groups.\n"
-        "**.addqr** - Add a QR code (reply to an image).\n"
+        "**.addqr** - Add a QR code (reply image).\n"
         "**.getqr** - Retrieve all saved QR codes.\n"
         "**.afk <reason>** - Set an AFK message.\n"
         "**.back** - Disable AFK mode.\n"
