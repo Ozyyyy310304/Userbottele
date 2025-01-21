@@ -94,7 +94,6 @@ async def detect_links(event):
         for link in links:
             detected_links.add(link)
 
-# Command .jgc untuk bergabung ke grup dari link yang terdeteksi
 @client.on(events.NewMessage(pattern='.jgc', outgoing=True))
 async def join_groups(event):
     sender = await event.get_sender()
