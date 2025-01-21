@@ -115,6 +115,7 @@ async def join_groups(event):
             invite_hash = link.split('+')[-1]  # Ambil hash undangan dari link
             await client(ImportChatInviteRequest(invite_hash))
             success_count += 1
+            await asyncio.sleep(15)
         except Exception as e:
             print(f"Failed to join group: {e}")
             failed_count += 1
