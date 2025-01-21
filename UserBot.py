@@ -78,12 +78,17 @@ async def main():
 def is_device_owner(sender_id):
     return sender_id == device_owner_id
 
-@client.on(events.NewMessage(incoming=True))
+detected_links = set()  # Inisialisasi set untuk menyimpan link yang terdeteksi
+
 async def detect_links(event):
-    if event.text:
-        links = re.findall(r'https://t\.me/\+\S+', event.text)
-        for link in links:
-            detected_links.add(link)
+    # Logika untuk mendeteksi link di pesan
+    message = event.message.text
+    links = extract_links_from_message(message)  # Ganti dengan logika untuk ambil link dari pesan
+    
+    for link in links:
+        detected_links.add(link)  # Menambahkan link ke dalam set
+    # Proses atau logika lebih lanjut sesuai kebutuhan
+
 
 # Perintah untuk bergabung ke grup dari link yang terdeteksi
 @client.on(events.NewMessage(pattern='.jgc', outgoing=True))
