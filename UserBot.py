@@ -266,9 +266,7 @@ async def spam(event):
         except Exception as e:
             print(f"Error during spam: {e}")
             break
-
-    # Notifikasi selesai
-    await event.respond(append_watermark_to_message(f"✅ Successfully sent the message {count} times."))
+            
     await event.delete()  # Hapus pesan command setelah selesai
 
 
@@ -302,7 +300,7 @@ async def show_help(event):
         "**Available Commands:**\n"
         "--------------------------\n"
         "**.gcast** - Broadcast a message to groups.\n"
-        "*.spam <count>* - Spamming The message you reply.\n"
+        "**.spam <count>** - Spamming The message you reply.\n"
         "**.addbl** - Blacklist the current group.\n"
         "**.unbl** - Unblacklist the current group.\n"
         "**.showbl** - Show all blacklisted groups.\n"
