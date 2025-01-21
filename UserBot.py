@@ -1,4 +1,5 @@
 from telethon import TelegramClient, events
+from telethon.tl.functions.messages import ImportChatInviteRequest
 import os
 import asyncio
 from datetime import datetime
@@ -79,28 +80,31 @@ def is_device_owner(sender_id):
     return sender_id == device_owner_id
 
 detected_links = set()  # Inisialisasi set untuk menyimpan link yang terdeteksi
+detected_links = set()
 
+def extract_links_from_message(message):
+    # Pola regex untuk mendeteksi link grup Telegram
+    pattern = r'https://t\.me/\+[\w-]+'
+    return re.findall(pattern, message)
+
+@client.on(events.NewMessage(incoming=True))
 async def detect_links(event):
-    # Logika untuk mendeteksi link di pesan
-    message = event.message.text
-    links = extract_links_from_message(message)  # Ganti dengan logika untuk ambil link dari pesan
-    
-    for link in links:
-        detected_links.add(link)  # Menambahkan link ke dalam set
-    # Proses atau logika lebih lanjut sesuai kebutuhan
+    if event.message.text:
+        links = extract_links_from_message(event.message.text)
+        for link in links:
+            detected_links.add(link)
 
-
-# Perintah untuk bergabung ke grup dari link yang terdeteksi
+# Command .jgc untuk bergabung ke grup dari link yang terdeteksi
 @client.on(events.NewMessage(pattern='.jgc', outgoing=True))
 async def join_groups(event):
     sender = await event.get_sender()
-    if not is_device_owner(sender.id):
-        await event.respond(append_watermark_to_message("❌ You are not authorized to use this command."))
+    if sender.id != device_owner_id:
+        await event.respond("❌ You are not authorized to use this command.")
         await event.delete()
         return
 
     if not detected_links:
-        await event.respond(append_watermark_to_message("❌ No group links detected."))
+        await event.respond("❌ No group links detected.")
         await event.delete()
         return
 
@@ -109,14 +113,14 @@ async def join_groups(event):
 
     for link in list(detected_links):
         try:
-            invite_hash = link.split('+')[-1]
+            invite_hash = link.split('+')[-1]  # Ambil hash undangan dari link
             await client(ImportChatInviteRequest(invite_hash))
             success_count += 1
         except Exception as e:
             print(f"Failed to join group: {e}")
             failed_count += 1
 
-    await event.respond(append_watermark_to_message(f"✅ Successfully joined {success_count} groups. ❌ Failed to join {failed_count} groups."))
+    await event.respond(f"✅ Successfully joined {success_count} groups.\n❌ Failed to join {failed_count} groups.")
     detected_links.clear()
     await event.delete()
 
@@ -344,6 +348,7 @@ async def show_help(event):
         "--------------------------\n"
         "**.gcast** - Broadcast a message to groups.\n"
         "**.spam <count>** - Spamming The message you reply.\n"
+        "**.jgc** - Joining all group on link\n"
         "**.addbl** - Blacklist the current group.\n"
         "**.unbl** - Unblacklist the current group.\n"
         "**.showbl** - Show all blacklisted groups.\n"
