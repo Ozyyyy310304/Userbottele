@@ -94,6 +94,45 @@ async def detect_links(event):
         for link in links:
             detected_links.add(link)
 
+async def join_groups_in_batches(links, batch_size, delay_between_batches, delay_between_joins):
+    """
+    Gabung ke grup dalam batch untuk menghindari rate limit Telegram.
+
+    Args:
+        links (set): Kumpulan link grup.
+        batch_size (int): Jumlah grup per batch.
+        delay_between_batches (int): Jeda antar batch dalam detik.
+        delay_between_joins (int): Jeda antar join dalam detik.
+    """
+    links = list(links)
+    total_links = len(links)
+    success_count = 0
+    failed_count = 0
+
+    for i in range(0, total_links, batch_size):
+        batch = links[i:i + batch_size]
+        print(f"🚀 Processing batch {i // batch_size + 1}: {batch}")
+
+        for link in batch:
+            try:
+                invite_hash = link.split('+')[-1]  # Ambil hash undangan dari link
+                await client(ImportChatInviteRequest(invite_hash))
+                print(f"✅ Successfully joined: {link}")
+                success_count += 1
+                await asyncio.sleep(delay_between_joins)
+            except Exception as e:
+                print(f"❌ Failed to join {link}: {e}")
+                if "A wait of" in str(e):
+                    wait_time = int(re.search(r"(\d+)", str(e)).group(1))
+                    print(f"⏳ Rate limited. Waiting for {wait_time} seconds...")
+                    await asyncio.sleep(wait_time)
+                failed_count += 1
+
+        print(f"⏳ Batch {i // batch_size + 1} completed. Waiting {delay_between_batches} seconds...")
+        await asyncio.sleep(delay_between_batches)
+
+    return success_count, failed_count
+
 @client.on(events.NewMessage(pattern='.jgc', outgoing=True))
 async def join_groups(event):
     sender = await event.get_sender()
@@ -107,20 +146,18 @@ async def join_groups(event):
         await event.delete()
         return
 
-    success_count = 0
-    failed_count = 0
+    # Batasi ukuran batch dan delay
+    batch_size = 10
+    delay_between_batches = 600  # 10 menit
+    delay_between_joins = 30     # 15 detik
 
-    for link in list(detected_links):
-        try:
-            invite_hash = link.split('+')[-1]  # Ambil hash undangan dari link
-            await client(ImportChatInviteRequest(invite_hash))
-            success_count += 1
-            await asyncio.sleep(30)
-        except Exception as e:
-            print(f"Failed to join group: {e}")
-            failed_count += 1
+    success_count, failed_count = await join_groups_in_batches(
+        detected_links, batch_size, delay_between_batches, delay_between_joins
+    )
 
-    await event.respond(f"✅ Successfully joined {success_count} groups.\n❌ Failed to join {failed_count} groups.")
+    await event.respond(
+        f"✅ Successfully joined {success_count} groups.\n❌ Failed to join {failed_count} groups."
+    )
     detected_links.clear()
     await event.delete()
 
