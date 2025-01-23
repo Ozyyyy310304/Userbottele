@@ -1,14 +1,18 @@
 from telethon import TelegramClient, events
 from telethon.tl.functions.messages import ImportChatInviteRequest
-import os
 import asyncio
 from datetime import datetime
 import json
 import re
+from telethon.sync import TelegramClient
+from telethon.sessions import StringSession
+import os
+
 
 api_id = '29798494'
 api_hash = '53273c1de3e68a9ecdb90de2dcf46f6c'
-
+# Jika menggunakan file session langsung
+client = TelegramClient('userbot.session', api_id, api_hash)
 client = TelegramClient('userbot', api_id, api_hash)
 device_owner_id = None
 afk_reason = None
